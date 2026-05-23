@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Radhe Radhe - Max Analytics 🪷</title>
+    
+    <!-- Chart.js for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --pink: #ff4d85;
+            --pink-light: #fff0f5;
+            --pink-dark: #d81b60;
+            --gold: #ffb300;
+            --text-dark: #4a148c;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fce4ec, #f8bbd0, #ffc1e3);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Header & Settings --- */
+        .header {
+            position: relative;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px;
+        }
+        .header h1 { color: var(--pink-dark); font-size: 2.2rem; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.15); letter-spacing: 1px; }
+        .header p { margin: 4px 0 0; font-size: 0.9rem; font-weight: bold; background: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 12px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        .settings-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #ffb6c1;
+            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.2);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .settings-btn:active { transform: scale(0.9); }
+        .settings-btn:hover svg { animation: spinGear 2s linear infinite; }
+        @keyframes spinGear { 100% { transform: rotate(360deg); } }
+
+        /* --- Cards (Advanced Glassmorphism) --- */
+        .card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(216, 27, 96, 0.15), inset 0 2px 0 rgba(255,255,255,0.8);
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 182, 193, 0.6);
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        /* --- Max Analytics Dashboard --- */
+        .analytics-row {
+            background: rgba(255, 240, 245, 0.85);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 182, 193, 0.8);
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .analytics-title {
+            font-weight: 900; color: var(--pink-dark); font-size: 1rem;
+            display: flex; justify-content: space-between; margin-bottom: 5px;
+        }
+        .analytics-stats {
+            display: flex; justify-content: space-between;
+            font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: #555;
+        }
+        .bar-bg { width: 100%; background: rgba(255, 224, 233, 0.8); border-radius: 8px; height: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--pink), var(--pink-dark)); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(216, 27, 96, 0.5); }
+
+        /* --- Main Tap Button --- */
+        .bead-btn {
+            background: radial-gradient(circle at 30% 30%, #ff80ab 0%, var(--pink-dark) 80%);
+            color: white; border: none; border-radius: 50%;
+            width: 190px; height: 190px;
+            cursor: pointer;
+            box-shadow: 0 15px 35px rgba(216, 27, 96, 0.5), inset 0 -8px 20px rgba(0,0,0,0.3), inset 0 8px 20px rgba(255,255,255,0.4);
+            margin: 10px auto; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            border: 6px solid var(--gold);
+            transition: all 0.1s ease;
+        }
+        .bead-btn:active { transform: scale(0.92); box-shadow: 0 5px 15px rgba(216, 27, 96, 0.5), inset 0 -4px 10px rgba(0,0,0,0.3); }
+        .bead-count {
+            background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px;
+            font-size: 1.3rem; font-weight: bold; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- ETA Box --- */
+        .eta-box {
+            background: rgba(243, 229, 245, 0.9); padding: 12px; border-radius: 12px;
+            font-weight: bold; font-size: 0.95rem; border: 1px dashed var(--pink-dark);
+            color: #4a148c; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .eta-date { color: var(--pink-dark); font-size: 1.2rem; display: block; margin-top: 4px; text-shadow: 1px 1px 1px rgba(0,0,0,0.05); }
+
+        /* --- Graph Container --- */
+        .graph-container { width: 100%; height: 250px; }
+
+        /* --- Settings Modal (Advanced Premium UI) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(20px); padding: 25px; border-radius: 24px;
+            width: 92%; max-width: 400px; text-align: center; border: 3px solid var(--gold);
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+        }
+        .modal-title { margin-top: 0; color: var(--text-dark); font-size: 1.5rem; border-bottom: 2px dashed #f8bbd0; padding-bottom: 12px; margin-bottom: 20px; letter-spacing: 0.5px;}
+        
+        .manual-section {
+            background: rgba(255, 240, 245, 0.9);
+            border: 1px solid rgba(255, 182, 193, 0.8);
+            padding: 15px;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(216, 27, 96, 0.05);
+            transition: transform 0.2s;
+        }
+        .manual-section:focus-within { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(216, 27, 96, 0.1); }
+        
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .section-header h3 { margin: 0; font-size: 1.1rem; color: var(--text-dark); text-align: left; }
+        .section-icon { font-size: 1.4rem; }
+
+        /* Unified Input & Button Row Layout - FIXED FOR MOBILE */
+        .input-row { display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; }
+        .manual-input { 
+            width: 100%; box-sizing: border-box; padding: 12px 15px; border-radius: 14px; border: 2px solid #f8bbd0; 
+            font-size: 1.1rem; text-align: center; outline: none; transition: 0.3s; 
+            background: rgba(255,255,255,0.95); font-weight: bold; color: var(--text-dark);
+            margin: 0; 
+        }
+        .manual-input::placeholder { color: #aaa; font-weight: normal; font-size: 0.95rem; text-align: center; }
+        .manual-input:focus { border-color: var(--pink-dark); box-shadow: 0 0 0 3px rgba(216,27,96,0.15); }
+        
+        .ctrl-btn { 
+            width: 100%; box-sizing: border-box; padding: 14px; border: none; border-radius: 14px; font-weight: 800; font-size: 1.1rem; 
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ctrl-btn:active { transform: scale(0.95); }
+        
+        .btn-add { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); color: #1b5e20; border: 1px solid #81c784; }
+        .btn-target { background: linear-gradient(135deg, #fff9c4, #fff59d); color: #f57f17; border: 1px solid #fff176; }
+
+        .btn-close { 
+            background: linear-gradient(135deg, var(--gold), #ff8f00); color: #fff; width: 100%; 
+            padding: 16px; border: none; border-radius: 18px; font-weight: 900; font-size: 1.2rem; 
+            margin-top: 15px; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 179, 0, 0.4); 
+            text-transform: uppercase; letter-spacing: 1.5px; 
+        }
+        .btn-close:active { transform: translateY(3px); box-shadow: 0 4px 10px rgba(255, 179, 0, 0.4); }
+
+    </style>
+
+    <!-- Import Map for Firebase -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div style="font-size: 2.5rem; text-shadow: 0 0 15px rgba(255,77,133,0.5);">🪷</div>
+        <h1>Radhe Radhe</h1>
+        <p id="header-sankalp-text">Sankalp: 49 Batches (539 Malas)</p>
+        <button class="settings-btn" id="open-settings">
+            <span style="display:none;">⚙️</span>
+            <!-- Advanced Animated Gear SVG -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--pink-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Analytics Dashboard -->
+    <div class="card">
+        <!-- Jap Row -->
+        <div class="analytics-row">
+            <div class="analytics-title"><span>Jap (Beads)</span> <span id="p-jap">0%</span></div>
+            <div class="analytics-stats">
+                <span>Done: <span id="done-jap">0</span></span>
+                <span>Left: <span id="left-jap">68,992</span></span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" id="bar-jap"></div></div>
+        </div>
+
+        <!-- Mala Row -->
+        <div class="analytics-row">
+            <div class="analytics-title"><span>Malas (128 Jap)</span> <span id="p-mala">0%</span></div>
+            <div class="analytics-stats">
+                <span>Done: <span id="done-mala">0</span></span>
+                <span>Left: <span id="left-mala">539</span></span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" id="bar-mala"></div></div>
+        </div>
+
+        <!-- Batch Row -->
+        <div class="analytics-row">
+            <div class="analytics-title"><span>Batches (11 Malas)</span> <span id="p-batch">0%</span></div>
+            <div class="analytics-stats">
+                <span>Done: <span id="done-batch">0</span></span>
+                <span>Left: <span id="left-batch">49</span></span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" id="bar-batch"></div></div>
+        </div>
+    </div>
+
+    <!-- Tapping Section -->
+    <div class="card">
+        <button class="bead-btn" id="tap-bead">
+            <span style="font-size: 2.8rem; text-shadow: 0 0 15px rgba(255,255,255,0.6);">🪷</span>
+            <div class="bead-count" id="current-mala-bead">0 / 128</div>
+        </button>
+
+        <div class="eta-box">
+            🗓️ Target Completion:
+            <span class="eta-date" id="eta-text">Chant to calculate...</span>
+            <span style="font-size: 0.75rem; color: #666; font-weight: normal; margin-top:3px; display:block;">(Based on last 5 calendar days)</span>
+        </div>
+    </div>
+
+    <!-- Graph Section -->
+    <div class="card">
+        <h3 style="margin: 0 0 10px 0; color: var(--pink-dark); text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">Daily Performance 📈</h3>
+        <div class="graph-container"><canvas id="japChart"></canvas></div>
+    </div>
+
+    <!-- Settings Modal (NO Reduce Buttons - Advanced UI) -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">⚙️ Adjust Settings</h2>
+            
+            <!-- 1. Extra Target Sankalp Adjustment -->
+            <div class="manual-section" style="border-color: #ffb300; background: rgba(255,248,225,0.8);">
+                <div class="section-header">
+                    <span class="section-icon">🎯</span>
+                    <h3 style="color: #f57f17;">Extra Sankalp</h3>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="manual-target-input" class="manual-input" style="border-color: #ffb300;" placeholder="Add Extra (e.g., 2)">
+                    <button class="ctrl-btn btn-target" id="btn-manual-target-add" style="color: #000;">+ Add</button>
+                </div>
+            </div>
+
+            <!-- 2. Manual Mala Adjustment (Progress) -->
+            <div class="manual-section">
+                <div class="section-header">
+                    <span class="section-icon">📿</span>
+                    <h3>Add Malas Progress</h3>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="manual-mala-input" class="manual-input" placeholder="Done Malas (e.g., 2)">
+                    <button class="ctrl-btn btn-add" id="btn-manual-mala-add">+ Add</button>
+                </div>
+            </div>
+
+            <!-- 3. Manual Jap Adjustment (Progress) -->
+            <div class="manual-section">
+                <div class="section-header">
+                    <span class="section-icon">🪷</span>
+                    <h3>Add Jap Progress</h3>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="manual-jap-input" class="manual-input" placeholder="Done Jap (e.g., 50)">
+                    <button class="ctrl-btn btn-add" id="btn-manual-jap-add">+ Add</button>
+                </div>
+            </div>
+
+            <button class="btn-close" id="close-settings">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
+
+        // Firebase Setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEOXyQ1_eOsEhEg4hJg96viwoJ_uqL6DA",
+            authDomain: "result-ea3d7.firebaseapp.com",
+            databaseURL: "https://result-ea3d7-default-rtdb.firebaseio.com",
+            projectId: "result-ea3d7",
+            storageBucket: "result-ea3d7.firebasestorage.app",
+            messagingSenderId: "428500567446",
+            appId: "1:428500567446:web:4a02b0442651e4a9ca09b7"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- CONSTANTS & MATH ---
+        const BEADS_PER_MALA = 128;
+        const MALAS_PER_BATCH = 11;
+        
+        const BASE_MALAS = 539;
+        const BASE_BEADS = BASE_MALAS * BEADS_PER_MALA;
+        
+        let EXTRA_MALAS = parseInt(localStorage.getItem('radha_extra_malas')) || 0;
+        
+        // --- DATA STATE ---
+        let totalBeads = parseInt(localStorage.getItem('radha_total_beads')) || 0;
+        let dailyData = JSON.parse(localStorage.getItem('radha_daily_data')) || {};
+
+        function getTodayStr() {
+            let d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        // --- TARGET (EXTRA SANKALP) LOGIC ---
+        function modifyTarget(amount) {
+            EXTRA_MALAS += amount;
+            if (EXTRA_MALAS < 0) EXTRA_MALAS = 0; // Prevent going below 0 extra
+            
+            localStorage.setItem('radha_extra_malas', EXTRA_MALAS);
+            updateUI();
+            saveToFirebase(); // Instantly sync Target changes
+        }
+
+        // --- CORE PROGRESS LOGIC ---
+        function modifyBeads(amount, forceSync = false) {
+            let today = getTodayStr();
+            
+            // Adjust local state
+            totalBeads += amount;
+            if (totalBeads < 0) totalBeads = 0;
+
+            // Adjust Daily Data
+            dailyData[today] = (dailyData[today] || 0) + amount;
+            if(dailyData[today] < 0) dailyData[today] = 0;
+
+            // Save Locally EVERY TIME
+            localStorage.setItem('radha_total_beads', totalBeads);
+            localStorage.setItem('radha_daily_data', JSON.stringify(dailyData));
+
+            updateUI();
+            updateChart();
+
+            // 🔥 FIREBASE OPTIMIZATION: Updates on exactly 1 Mala OR Forced by Manual Edit 🔥
+            if ((totalBeads > 0 && totalBeads % 128 === 0) || forceSync) {
+                saveToFirebase();
+            }
+        }
+
+        // --- UPDATE UI DASHBOARD ---
+        function updateUI() {
+            // Update Header Extra Sankalp Text logic (X + 539)
+            if (EXTRA_MALAS > 0) {
+                document.getElementById('header-sankalp-text').innerText = `Sankalp: 49 Batches (${EXTRA_MALAS} + 539 Malas)`;
+            } else {
+                document.getElementById('header-sankalp-text').innerText = `Sankalp: 49 Batches (539 Malas)`;
+            }
+
+            let targetBeads, targetMalas, targetBatches;
+            let cBeads, cMalas, cBatches;
+
+            // Dashboard calculating OUT OF EXTRA target if set
+            if (EXTRA_MALAS > 0) {
+                targetMalas = EXTRA_MALAS;
+                targetBeads = targetMalas * BEADS_PER_MALA;
+                targetBatches = targetMalas / MALAS_PER_BATCH;
+                
+                cBeads = Math.max(0, totalBeads - BASE_BEADS);
+                cMalas = Math.floor(cBeads / BEADS_PER_MALA);
+                cBatches = Math.floor(cMalas / MALAS_PER_BATCH);
+            } else {
+                // Normal calculating out of BASE target
+                targetMalas = BASE_MALAS;
+                targetBeads = BASE_BEADS;
+                targetBatches = targetMalas / MALAS_PER_BATCH;
+                
+                cBeads = totalBeads;
+                cMalas = Math.floor(cBeads / BEADS_PER_MALA);
+                cBatches = Math.floor(cMalas / MALAS_PER_BATCH);
+            }
+
+            // Calculations for percentages and left counting
+            let lBeads = Math.max(0, targetBeads - cBeads);
+            let pBeads = ((cBeads / targetBeads) * 100).toFixed(2);
+            if (pBeads > 100) pBeads = 100;
+            if (isNaN(pBeads)) pBeads = 0;
+
+            let lMalas = Math.max(0, targetMalas - cMalas);
+            let pMalas = ((cMalas / targetMalas) * 100).toFixed(2);
+            if (pMalas > 100) pMalas = 100;
+            if (isNaN(pMalas)) pMalas = 0;
+
+            let lBatches = Math.max(0, targetBatches - cBatches);
+            let pBatches = ((cBatches / targetBatches) * 100).toFixed(2);
+            if (pBatches > 100) pBatches = 100;
+            if (isNaN(pBatches)) pBatches = 0;
+
+            let currentMalaCount = totalBeads % BEADS_PER_MALA;
+
+            // DOM Updates - Jap
+            document.getElementById('done-jap').innerText = cBeads.toLocaleString();
+            document.getElementById('left-jap').innerText = lBeads.toLocaleString();
+            document.getElementById('p-jap').innerText = pBeads + '%';
+            document.getElementById('bar-jap').style.width = pBeads + '%';
+
+            // DOM Updates - Mala
+            document.getElementById('done-mala').innerText = cMalas;
+            document.getElementById('left-mala').innerText = lMalas;
+            document.getElementById('p-mala').innerText = pMalas + '%';
+            document.getElementById('bar-mala').style.width = pMalas + '%';
+
+            // DOM Updates - Batch
+            document.getElementById('done-batch').innerText = cBatches;
+            document.getElementById('left-batch').innerText = lBatches.toFixed(1).replace('.0','');
+            document.getElementById('p-batch').innerText = pBatches + '%';
+            document.getElementById('bar-batch').style.width = pBatches + '%';
+
+            // Tap Button Text
+            document.getElementById('current-mala-bead').innerText = `${currentMalaCount} / 128`;
+
+            calculateETA(lBeads);
+        }
+
+        // --- ETA LOGIC (Strict Calendar Days) ---
+        function calculateETA(remainingBeads) {
+            const etaEl = document.getElementById('eta-text');
+            if (remainingBeads <= 0) return etaEl.innerText = "Sankalp Purna! 🎉";
+
+            let activeDates = Object.keys(dailyData).sort();
+            if (activeDates.length === 0) return etaEl.innerText = "Chant daily to predict...";
+
+            let firstDateStr = activeDates[0];
+            let firstDate = new Date(firstDateStr);
+            let todayStr = getTodayStr();
+            let today = new Date(todayStr);
+
+            let daysSinceStart = Math.floor((today - firstDate) / (1000 * 60 * 60 * 24)) + 1;
+            let divider = Math.min(daysSinceStart, 5);
+            
+            let totalJapInLastDays = 0;
+            for (let i = 0; i < divider; i++) {
+                let d = new Date(today);
+                d.setDate(d.getDate() - i);
+                let ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                totalJapInLastDays += (dailyData[ds] || 0);
+            }
+
+            let avgDailySpeed = totalJapInLastDays / divider;
+            if (avgDailySpeed < 1) return etaEl.innerText = "Speed is too low...";
+
+            let daysLeft = Math.ceil(remainingBeads / avgDailySpeed);
+            let targetDate = new Date(); 
+            targetDate.setDate(targetDate.getDate() + daysLeft);
+            
+            etaEl.innerText = targetDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Firebase Sync Function
+        async function saveToFirebase() {
+            try {
+                await setDoc(doc(db, "mala_tracker", "my_progress"), {
+                    totalBeads: totalBeads, 
+                    dailyData: dailyData, 
+                    extraMalas: EXTRA_MALAS, // Sync Extra Sankalp 
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+            } catch (e) { console.log("Firebase sync waiting for network..."); }
+        }
+
+        // --- REAL-TIME FIREBASE LISTENER (Updates all phones instantly) ---
+        onSnapshot(doc(db, "mala_tracker", "my_progress"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                let needsUpdate = false;
+                
+                // Sync Beads Progress
+                if (data.totalBeads !== undefined && data.totalBeads !== totalBeads) {
+                    totalBeads = data.totalBeads;
+                    localStorage.setItem('radha_total_beads', totalBeads);
+                    needsUpdate = true;
+                }
+                
+                // Sync Daily Data
+                if (data.dailyData) {
+                    dailyData = data.dailyData;
+                    localStorage.setItem('radha_daily_data', JSON.stringify(dailyData));
+                    needsUpdate = true;
+                }
+
+                // Sync Extra Sankalp
+                if (data.extraMalas !== undefined && data.extraMalas !== EXTRA_MALAS) {
+                    EXTRA_MALAS = data.extraMalas;
+                    localStorage.setItem('radha_extra_malas', EXTRA_MALAS);
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate) {
+                    updateUI();
+                    updateChart();
+                }
+            }
+        });
+
+        // --- EVENTS ---
+        const tapBtn = document.getElementById('tap-bead');
+        
+        tapBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            modifyBeads(1);
+            if(navigator.vibrate) navigator.vibrate(totalBeads % 128 === 0 ? [100,50,100] : 15);
+        });
+        
+        tapBtn.addEventListener('click', (e) => {
+            if(e.pointerType === 'mouse') modifyBeads(1);
+        });
+
+        // Settings Modal Events
+        const modal = document.getElementById('settings-modal');
+        document.getElementById('open-settings').onclick = () => modal.style.display = 'flex';
+        
+        // Auto Close logic function
+        function closeAndSaveModal() {
+            modal.style.display = 'none';
+            saveToFirebase();
+        }
+
+        // Bottom Button is only "Close"
+        document.getElementById('close-settings').onclick = closeAndSaveModal;
+
+        // --- Add Only Controls ---
+        
+        document.getElementById('btn-manual-target-add').onclick = () => {
+            let val = parseInt(document.getElementById('manual-target-input').value) || 0;
+            if(val !== 0) { modifyTarget(val); document.getElementById('manual-target-input').value = ''; closeAndSaveModal(); }
+        };
+
+        document.getElementById('btn-manual-mala-add').onclick = () => {
+            let val = parseInt(document.getElementById('manual-mala-input').value) || 0;
+            if(val !== 0) { modifyBeads(val * 128, true); document.getElementById('manual-mala-input').value = ''; closeAndSaveModal(); }
+        };
+        
+        document.getElementById('btn-manual-jap-add').onclick = () => {
+            let val = parseInt(document.getElementById('manual-jap-input').value) || 0;
+            if(val !== 0) { modifyBeads(val, true); document.getElementById('manual-jap-input').value = ''; closeAndSaveModal(); }
+        };
+
+        // --- GRAPH LOGIC ---
+        const ctx = document.getElementById('japChart').getContext('2d');
+        const japChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [
+                { type: 'line', label: 'Beads', data: [], borderColor: '#ffb300', backgroundColor: '#ffb300', borderWidth: 2, tension: 0.3, yAxisID: 'y1' },
+                { type: 'bar', label: 'Malas', data: [], backgroundColor: 'rgba(216, 27, 96, 0.7)', borderRadius: 4, yAxisID: 'y' }
+            ]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { type: 'linear', position: 'left', beginAtZero: true },
+                    y1: { type: 'linear', position: 'right', display: false, beginAtZero: true }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function updateChart() {
+            let labels = [], beads = [], malas = [];
+            for (let i = 6; i >= 0; i--) {
+                let d = new Date(); d.setDate(d.getDate() - i);
+                let ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+                let b = dailyData[ds] || 0;
+                beads.push(b); malas.push((b/128).toFixed(1));
+            }
+            japChart.data.labels = labels;
+            japChart.data.datasets[0].data = beads;
+            japChart.data.datasets[1].data = malas;
+            japChart.update();
+        }
+
+        // Initialize App on Load
+        updateUI(); updateChart();
+    </script>
+</body>
+</html>
