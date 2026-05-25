@@ -119,7 +119,10 @@
             border: 6px solid var(--gold);
             transition: all 0.1s ease;
         }
-        .bead-btn:active { transform: scale(0.92); box-shadow: 0 5px 15px rgba(216, 27, 96, 0.5), inset 0 -4px 10px rgba(0,0,0,0.3); }
+        
+        /* Tap button animation scale removed as per request */
+        /* .bead-btn:active { transform: scale(0.92); box-shadow: 0 5px 15px rgba(216, 27, 96, 0.5), inset 0 -4px 10px rgba(0,0,0,0.3); } */ 
+        
         .bead-count {
             background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px;
             font-size: 1.3rem; font-weight: bold; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2);
@@ -194,6 +197,29 @@
         }
         .btn-close:active { transform: translateY(3px); box-shadow: 0 4px 10px rgba(255, 179, 0, 0.4); }
 
+        /* --- ADDED ADVANCED NEW ANIMATIONS & STYLES --- */
+        .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none; }
+        .toast { background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px; border-radius: 20px; font-size: 1rem; font-weight: bold; backdrop-filter: blur(10px); animation: toastIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), toastOut 0.3s 2s forwards; box-shadow: 0 8px 25px rgba(0,0,0,0.3); text-align: center; min-width: 200px; border: 1px solid rgba(255,255,255,0.2);}
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(-10px) scale(0.9); } }
+        
+        .sync-indicator { position: absolute; top: 15px; left: 15px; width: 14px; height: 14px; border-radius: 50%; background: #4caf50; box-shadow: 0 0 12px #4caf50; opacity: 0; transition: opacity 0.3s; z-index: 100;}
+        .sync-indicator.syncing { animation: pulseSync 1s infinite; opacity: 1; }
+        @keyframes pulseSync { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
+
+        /* Button Ripple & Depth (Ripple disabled as per request) */
+        /* .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple 0.6s linear; background: rgba(255, 255, 255, 0.5); pointer-events: none; }
+        @keyframes ripple { to { transform: scale(4); opacity: 0; } } */
+        .bead-btn { position: relative; overflow: hidden; }
+
+        /* Advanced Bar Animation */
+        .bar-fill { background: linear-gradient(90deg, var(--pink), var(--pink-dark), var(--gold), var(--pink)); background-size: 300% 100%; animation: gradientMove 3s linear infinite; box-shadow: 0 0 12px rgba(216, 27, 96, 0.6), inset 0 0 5px rgba(255,255,255,0.4); border-radius: 8px;}
+        @keyframes gradientMove { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+        /* Floating Lotus background */
+        .floating-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1; overflow: hidden; }
+        .petal { position: absolute; font-size: 1.8rem; opacity: 0.25; animation: floatPetal 15s linear infinite; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));}
+        @keyframes floatPetal { 0% { transform: translateY(110vh) rotate(0deg) scale(0.8); } 100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); } }
     </style>
 
     <!-- Import Map for Firebase -->
@@ -207,6 +233,12 @@
     </script>
 </head>
 <body>
+
+    <!-- Added Notification & Background Systems -->
+    <div class="sync-indicator" id="sync-dot"></div>
+    <div class="toast-container" id="toast-container"></div>
+    <div class="floating-bg" id="floating-bg"></div>
+    <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998;"></canvas>
 
     <!-- Header -->
     <div class="header">
@@ -338,6 +370,82 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- NEW ADVANCED ANIMATION FUNCTIONS ---
+        function showToast(message, color = "rgba(0,0,0,0.85)", duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = message;
+            toast.style.background = color;
+            toast.style.animation = `toastIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), toastOut 0.3s ${duration/1000}s forwards`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), duration + 300);
+        }
+
+        // Ripple Animation Function disabled as per request
+        function createRipple(event) {
+            /* 
+            const button = event.currentTarget;
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            let clientX, clientY;
+            if(event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX; clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX; clientY = event.clientY;
+            }
+            const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${clientX - rect.left - radius}px`;
+            circle.style.top = `${clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+            const ripple = button.getElementsByClassName("ripple")[0];
+            if (ripple) { ripple.remove(); }
+            button.appendChild(circle); 
+            */
+        }
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let particles = [];
+            for(let i=0; i<120; i++) {
+                particles.push({
+                    x: canvas.width/2, y: canvas.height/2,
+                    vx: (Math.random()-0.5)*25, vy: (Math.random()-1)*25,
+                    color: ['#ff4d85', '#ffb300', '#ffffff', '#4a148c', '#4caf50'][Math.floor(Math.random()*5)],
+                    size: Math.random()*6+4
+                });
+            }
+            function render() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.6; 
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+                    if(p.y > canvas.height) particles.splice(i,1);
+                });
+                if(particles.length > 0) requestAnimationFrame(render);
+                else ctx.clearRect(0,0,canvas.width,canvas.height);
+            }
+            render();
+        }
+
+        function initBackground() {
+            const bg = document.getElementById('floating-bg');
+            for(let i=0; i<15; i++) {
+                let p = document.createElement('div');
+                p.className = 'petal'; p.innerText = '🪷';
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                p.style.animationDelay = (Math.random() * 10) + 's';
+                bg.appendChild(p);
+            }
+        }
+        initBackground();
+
         // --- CONSTANTS & MATH ---
         const BEADS_PER_MALA = 128;
         const MALAS_PER_BATCH = 11;
@@ -378,21 +486,36 @@
             dailyData[today] = (dailyData[today] || 0) + amount;
             if(dailyData[today] < 0) dailyData[today] = 0;
 
-            // Save Locally EVERY TIME
+            // Save Locally EVERY TIME (Ek ek bead pe bas Cache use hoga yaha)
             localStorage.setItem('radha_total_beads', totalBeads);
             localStorage.setItem('radha_daily_data', JSON.stringify(dailyData));
 
             updateUI();
             updateChart();
 
+            // Cache UI effect for single tap (Tap Animation Removed as requested)
+            /*
+            if (amount === 1 && totalBeads % 128 !== 0) {
+                let cBtn = document.getElementById('current-mala-bead');
+                cBtn.style.transform = 'scale(1.15)';
+                setTimeout(() => cBtn.style.transform = 'scale(1)', 150);
+            }
+            */
+
             // 🔥 FIREBASE OPTIMIZATION: Updates on exactly 1 Mala OR Forced by Manual Edit 🔥
             if ((totalBeads > 0 && totalBeads % 128 === 0) || forceSync) {
+                if(totalBeads % 128 === 0 && amount > 0 && !forceSync){
+                    triggerConfetti(); // Advanced Mala Completion Animation!
+                    showToast("🌸 Mala Completed! Synced to Cloud 🌸", "linear-gradient(135deg, #ff4d85, #d81b60)", 3500);
+                }
                 saveToFirebase();
             }
         }
 
         // --- UPDATE UI DASHBOARD ---
         function updateUI() {
+            
+            /* PREVIOUS LOGIC (Commented out to preserve every single word as requested)
             // Update Header Extra Sankalp Text logic (X + 539)
             if (EXTRA_MALAS > 0) {
                 document.getElementById('header-sankalp-text').innerText = `Sankalp: 49 Batches (${EXTRA_MALAS} + 539 Malas)`;
@@ -422,6 +545,26 @@
                 cMalas = Math.floor(cBeads / BEADS_PER_MALA);
                 cBatches = Math.floor(cMalas / MALAS_PER_BATCH);
             }
+            */
+
+            // NEW CORRECT LOGIC: Combined Target Calculation to prevent progress reset
+            let totalTargetMalasForHeader = BASE_MALAS + EXTRA_MALAS;
+            let totalBatchesForHeader = (totalTargetMalasForHeader / MALAS_PER_BATCH).toFixed(1).replace('.0', '');
+            
+            if (EXTRA_MALAS > 0) {
+                document.getElementById('header-sankalp-text').innerText = `Sankalp: ${totalBatchesForHeader} Batches (${EXTRA_MALAS} + 539 Malas)`;
+            } else {
+                document.getElementById('header-sankalp-text').innerText = `Sankalp: ${totalBatchesForHeader} Batches (539 Malas)`;
+            }
+
+            let targetMalas = BASE_MALAS + EXTRA_MALAS;
+            let targetBeads = targetMalas * BEADS_PER_MALA;
+            let targetBatches = targetMalas / MALAS_PER_BATCH;
+            
+            let cBeads = totalBeads;
+            let cMalas = Math.floor(cBeads / BEADS_PER_MALA);
+            let cBatches = Math.floor(cMalas / MALAS_PER_BATCH);
+
 
             // Calculations for percentages and left counting
             let lBeads = Math.max(0, targetBeads - cBeads);
@@ -499,8 +642,11 @@
             etaEl.innerText = targetDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
         }
 
-        // Firebase Sync Function
+        // Firebase Sync Function (Now with Advanced Notification System)
         async function saveToFirebase() {
+            const syncDot = document.getElementById('sync-dot');
+            if(syncDot) syncDot.classList.add('syncing');
+            
             try {
                 await setDoc(doc(db, "mala_tracker", "my_progress"), {
                     totalBeads: totalBeads, 
@@ -508,7 +654,11 @@
                     extraMalas: EXTRA_MALAS, // Sync Extra Sankalp 
                     lastUpdated: new Date().toISOString()
                 }, { merge: true });
-            } catch (e) { console.log("Firebase sync waiting for network..."); }
+            } catch (e) { 
+                console.log("Firebase sync error", e); 
+            } finally {
+                if(syncDot) setTimeout(() => syncDot.classList.remove('syncing'), 1000);
+            }
         }
 
         // --- REAL-TIME FIREBASE LISTENER (Updates all phones instantly) ---
@@ -550,12 +700,16 @@
         
         tapBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            // createRipple(e); // Advanced Animation disabled as requested
             modifyBeads(1);
             if(navigator.vibrate) navigator.vibrate(totalBeads % 128 === 0 ? [100,50,100] : 15);
         });
         
         tapBtn.addEventListener('click', (e) => {
-            if(e.pointerType === 'mouse') modifyBeads(1);
+            if(e.pointerType === 'mouse') {
+                // createRipple(e); // Advanced Animation disabled as requested
+                modifyBeads(1);
+            }
         });
 
         // Settings Modal Events
@@ -565,7 +719,7 @@
         // Auto Close logic function
         function closeAndSaveModal() {
             modal.style.display = 'none';
-            saveToFirebase();
+            saveToFirebase(); // This will trigger Firebase explicitly when closing settings!
         }
 
         // Bottom Button is only "Close"
@@ -580,7 +734,25 @@
 
         document.getElementById('btn-manual-mala-add').onclick = () => {
             let val = parseInt(document.getElementById('manual-mala-input').value) || 0;
-            if(val !== 0) { modifyBeads(val * 128, true); document.getElementById('manual-mala-input').value = ''; closeAndSaveModal(); }
+            if(val !== 0) { 
+                
+                // NEW LOGIC ADDED: Pehle chal rahi adhuri mala complete hogi, uske baad extra add honge
+                if (val > 0) {
+                    let currentMalaBeads = totalBeads % 128;
+                    let beadsToAdd = 0;
+                    if (currentMalaBeads > 0) {
+                        beadsToAdd = (128 - currentMalaBeads) + ((val - 1) * 128);
+                    } else {
+                        beadsToAdd = val * 128;
+                    }
+                    modifyBeads(beadsToAdd, true);
+                } else {
+                    modifyBeads(val * 128, true); 
+                }
+                
+                document.getElementById('manual-mala-input').value = ''; 
+                closeAndSaveModal(); 
+            }
         };
         
         document.getElementById('btn-manual-jap-add').onclick = () => {
